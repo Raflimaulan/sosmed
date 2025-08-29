@@ -3,10 +3,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import type { Comment } from "@/types";
+import type { Comment, User } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,10 +21,14 @@ interface CommentSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface CommentWithUser extends Comment {
+    userProfile?: User;
+}
+
 export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,12 +42,25 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
     const commentsRef = collection(firestore, 'posts', postId, 'comments');
     const q = query(commentsRef, orderBy('timestamp', 'asc'));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
         const commentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Comment));
-        setComments(commentsData);
+        
+        // Fetch user data for each comment
+        const commentsWithUsers = await Promise.all(
+            commentsData.map(async (comment) => {
+                const userDocRef = doc(firestore, 'users', comment.userId);
+                const userDoc = await getDoc(userDocRef);
+                return {
+                    ...comment,
+                    userProfile: userDoc.exists() ? userDoc.data() as User : undefined
+                };
+            })
+        );
+        
+        setComments(commentsWithUsers);
         setIsLoading(false);
     }, (error) => {
-        console.error("Error fetching comments:", error);
+        console.error("Error mengambil komentar:", error);
         setIsLoading(false);
     });
 
@@ -75,8 +92,8 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
         });
         setNewComment("");
     } catch (error) {
-         console.error("Error adding comment:", error);
-         toast({ title: "Failed to add comment", variant: "destructive" });
+         console.error("Error menambahkan komentar:", error);
+         toast({ title: "Gagal menambahkan komentar", variant: "destructive" });
     } finally {
         setIsSubmitting(false);
     }
@@ -86,7 +103,7 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[80vh] flex flex-col">
         <SheetHeader className="text-center">
-          <SheetTitle>Comments</SheetTitle>
+          <SheetTitle>Komentar</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-hidden">
@@ -107,8 +124,11 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
                         </Link>
                         <div className="flex-1 text-sm">
                         <p>
-                            <Link href={`/${comment.userId}`} className="font-bold hover:underline">
-                            {comment.username}
+                            <Link href={`/${comment.userId}`} className="font-bold hover:underline inline-flex items-center gap-1">
+                                {comment.username}
+                                {(comment.userProfile?.followers?.length ?? 0) >= 5 && (
+                                    <Icons.Verified className="w-4 h-4 text-blue-500" />
+                                )}
                             </Link>{" "}
                             {comment.text}
                         </p>
@@ -117,7 +137,7 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
                     ))
                 ) : (
                     <div className="text-center text-muted-foreground pt-10">
-                        <p>No comments yet. Be the first to comment!</p>
+                        <p>Belum ada komentar. Jadilah yang pertama berkomentar!</p>
                     </div>
                 )}
             </div>
@@ -127,7 +147,7 @@ export function CommentSheet({ postId, open, onOpenChange }: CommentSheetProps) 
         <div className="mt-auto border-t pt-4">
           <form onSubmit={handleCommentSubmit} className="relative w-full">
             <Input
-              placeholder="Add a comment..."
+              placeholder="Tambahkan komentar..."
               className="pr-12 h-12"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}

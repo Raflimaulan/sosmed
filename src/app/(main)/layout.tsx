@@ -32,12 +32,12 @@ import {
 import { Button } from "@/components/ui/button";
 
 const baseNavItems = [
-  { href: "/", icon: Icons.Home, label: "Home", tooltip: "Home" },
-  { href: "/create", icon: Icons.Create, label: "Create", tooltip: "Create Post" },
-  { href: "/messages", icon: Icons.Messages, label: "Messages", tooltip: "Messages" },
+  { href: "/", icon: Icons.Home, label: "Beranda", tooltip: "Beranda" },
+  { href: "/create", icon: Icons.Create, label: "Buat", tooltip: "Buat Postingan" },
+  { href: "/messages", icon: Icons.Messages, label: "Pesan", tooltip: "Pesan" },
 ];
 
-const adminNavItem = { href: "/admin", icon: Icons.Shield, label: "Admin", tooltip: "Admin Panel" };
+const adminNavItem = { href: "/admin", icon: Icons.Shield, label: "Admin", tooltip: "Panel Admin" };
 const ADMIN_EMAIL = "we@gmail.com";
 
 
@@ -47,10 +47,11 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const navItems = React.useMemo(() => {
+    const items = [...baseNavItems];
     if (user?.email === ADMIN_EMAIL) {
-      return [...baseNavItems, adminNavItem];
+      items.push(adminNavItem);
     }
-    return baseNavItems;
+    return items;
   }, [user?.email]);
 
 
@@ -65,7 +66,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
       await signOut(auth);
       router.push('/login');
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error saat keluar: ", error);
     }
   };
 
@@ -103,30 +104,30 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start p-2 h-auto">
                     <Avatar className="h-7 w-7 mr-2">
-                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'User'} data-ai-hint="person avatar" />
+                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'Pengguna'} data-ai-hint="person avatar" />
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
-                    <span className="truncate">{user.displayName || 'Profile'}</span>
+                    <span className="truncate">{user.displayName || 'Profil'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
                  <DropdownMenuItem asChild>
                    <Link href={`/${user.uid}`}>
                     <Icons.Profile className="mr-2" />
-                    <span>Profile</span>
+                    <span>Profil</span>
                    </Link>
                  </DropdownMenuItem>
                  <DropdownMenuSeparator />
                  <DropdownMenuItem onClick={handleLogout}>
                     <Icons.LogOut className="mr-2" />
-                    <span>Log out</span>
+                    <span>Keluar</span>
                  </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <div className="pb-20 md:pb-0">
+        <div className="pb-16 md:pb-0 h-full">
           {children}
         </div>
       </SidebarInset>

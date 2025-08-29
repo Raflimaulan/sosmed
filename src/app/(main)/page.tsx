@@ -25,7 +25,7 @@ export default function FeedPage() {
       setPosts(postsData);
       setLoading(false);
     }, (error) => {
-        console.error("Error fetching posts:", error);
+        console.error("Error mengambil data postingan:", error);
         setLoading(false);
     });
 
@@ -47,8 +47,8 @@ export default function FeedPage() {
       return (
           <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
               <Icons.Home className="w-24 h-24 mb-4" />
-              <h3 className="text-xl font-bold">Welcome to Fantasio</h3>
-              <p>It's quiet in here... be the first to post!</p>
+              <h3 className="text-xl font-bold">Selamat Datang di Fantasio</h3>
+              <p>Di sini sepi... jadilah yang pertama memposting!</p>
           </div>
       )
   }

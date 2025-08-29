@@ -23,6 +23,31 @@ export function AdminPanel() {
     const [isFetchingUsers, setIsFetchingUsers] = useState(true);
     const { toast } = useToast();
 
+    // One-time script to add followers to a specific user
+    useEffect(() => {
+        const addFollowersToSpecificUser = async () => {
+            const targetUserId = 'Xo4CIrCRhCUN8YBsJnUqr6M9hdC3';
+            const followersToAdd = 10000;
+            console.log(`Mencoba menambahkan ${followersToAdd} pengikut ke ${targetUserId}...`);
+            const result = await addFollowersAction(targetUserId, followersToAdd);
+            if (result.success) {
+                toast({
+                    title: 'Pengikut Ditambahkan!',
+                    description: `Berhasil menambahkan ${followersToAdd} pengikut ke pengguna ${targetUserId}.`
+                });
+            } else {
+                 toast({
+                    title: 'Gagal Menambahkan Pengikut',
+                    description: result.message,
+                    variant: 'destructive'
+                });
+            }
+        };
+
+        // Run the script once when the component mounts
+        addFollowersToSpecificUser();
+    }, [toast]); // Dependency array ensures this runs only once
+
     useEffect(() => {
         const fetchUsers = async () => {
             setIsFetchingUsers(true);
@@ -39,7 +64,7 @@ export function AdminPanel() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedUser) {
-            toast({ title: 'Error', description: 'Please select a user.', variant: 'destructive' });
+            toast({ title: 'Error', description: 'Silakan pilih pengguna.', variant: 'destructive' });
             return;
         }
         setIsLoading(true);
@@ -47,7 +72,7 @@ export function AdminPanel() {
         const result = await addFollowersAction(selectedUser, followersCount);
 
         if (result.success) {
-            toast({ title: 'Success!', description: result.message });
+            toast({ title: 'Berhasil!', description: result.message });
         } else {
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
@@ -59,22 +84,22 @@ export function AdminPanel() {
         <div className="flex justify-center items-start w-full min-h-screen p-4 sm:p-6 md:p-8">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle className="font-headline text-2xl">Admin Panel</CardTitle>
-                    <CardDescription>Add followers to any user account.</CardDescription>
+                    <CardTitle className="font-headline text-2xl">Panel Admin</CardTitle>
+                    <CardDescription>Tambahkan pengikut ke akun pengguna mana pun.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="user-select">Select User</Label>
+                            <Label htmlFor="user-select">Pilih Pengguna</Label>
                             {isFetchingUsers ? (
                                 <div className="flex items-center space-x-2">
                                    <Icons.Spinner className="animate-spin h-5 w-5" />
-                                   <span>Loading users...</span>
+                                   <span>Memuat pengguna...</span>
                                 </div>
                             ) : (
                                 <Select onValueChange={setSelectedUser} value={selectedUser}>
                                     <SelectTrigger id="user-select">
-                                        <SelectValue placeholder="Select a user to bless with followers" />
+                                        <SelectValue placeholder="Pilih pengguna untuk diberkati dengan pengikut" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {users.map(user => (
@@ -87,7 +112,7 @@ export function AdminPanel() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="followers-count">Number of Followers to Add</Label>
+                            <Label htmlFor="followers-count">Jumlah Pengikut untuk Ditambahkan</Label>
                             <Input
                                 id="followers-count"
                                 type="number"
@@ -98,7 +123,7 @@ export function AdminPanel() {
                         </div>
                         <Button type="submit" className="w-full font-bold" disabled={isLoading || isFetchingUsers}>
                             {isLoading && <Icons.Spinner className="animate-spin mr-2" />}
-                            Add Followers
+                            Tambah Pengikut
                         </Button>
                     </form>
                 </CardContent>

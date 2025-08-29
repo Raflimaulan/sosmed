@@ -23,8 +23,8 @@ import { Icons } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const profileFormSchema = z.object({
-  username: z.string().min(3, { message: "Username must be at least 3 characters." }).max(20),
-  bio: z.string().max(160, { message: "Bio cannot be longer than 160 characters." }).optional(),
+  username: z.string().min(3, { message: "Nama pengguna minimal 3 karakter." }).max(20),
+  bio: z.string().max(160, { message: "Bio tidak boleh lebih dari 160 karakter." }).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -105,18 +105,18 @@ export default function EditProfilePage() {
       });
       
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
+        title: "Profil Diperbarui",
+        description: "Profil Anda telah berhasil diperbarui.",
       });
 
       // Redirect to the updated profile page
       router.push(`/${user.uid}`);
 
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      console.error("Kesalahan memperbarui profil:", error);
       toast({
-        title: "Update Failed",
-        description: error.message || "An unexpected error occurred.",
+        title: "Pembaruan Gagal",
+        description: error.message || "Terjadi kesalahan tak terduga.",
         variant: "destructive",
       });
     } finally {
@@ -164,9 +164,9 @@ export default function EditProfilePage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
-              <CardTitle className="font-headline text-2xl">Edit Profile</CardTitle>
+              <CardTitle className="font-headline text-2xl">Edit Profil</CardTitle>
               <CardDescription>
-                Make changes to your profile here. Click save when you're done.
+                Lakukan perubahan pada profil Anda di sini. Klik simpan setelah selesai.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
@@ -186,9 +186,9 @@ export default function EditProfilePage() {
                 />
                 <div>
                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    Change Photo
+                    Ganti Foto
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-2">JPG, PNG. 5MB max.</p>
+                  <p className="text-xs text-muted-foreground mt-2">JPG, PNG. Maksimal 5MB.</p>
                 </div>
               </div>
 
@@ -197,9 +197,9 @@ export default function EditProfilePage() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Nama Pengguna</FormLabel>
                     <FormControl>
-                      <Input placeholder="your_cool_name" {...field} />
+                      <Input placeholder="nama_keren_anda" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -213,7 +213,7 @@ export default function EditProfilePage() {
                     <FormLabel>Bio</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us a little bit about yourself"
+                        placeholder="Ceritakan sedikit tentang diri Anda"
                         className="resize-none"
                         {...field}
                       />
@@ -226,7 +226,7 @@ export default function EditProfilePage() {
             <CardFooter>
               <Button type="submit" className="w-full font-bold text-lg py-6" disabled={isLoading}>
                 {isLoading && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
+                Simpan Perubahan
               </Button>
             </CardFooter>
           </form>

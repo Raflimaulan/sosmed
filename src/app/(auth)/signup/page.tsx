@@ -32,7 +32,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !email || !password) {
-        toast({ title: "Missing fields", description: "Please fill out all fields.", variant: "destructive" });
+        toast({ title: "Kolom tidak lengkap", description: "Harap isi semua kolom.", variant: "destructive" });
         return;
     }
     setIsLoading(true);
@@ -52,7 +52,7 @@ export default function SignupPage() {
         uid: user.uid,
         username: username,
         email: user.email,
-        bio: `Just joined Fantasio!`,
+        bio: `Baru saja bergabung dengan Fantasio!`,
         avatarUrl: `https://picsum.photos/seed/${user.uid}/200/200`,
         followers: [],
         following: [],
@@ -69,8 +69,8 @@ export default function SignupPage() {
           followers: newFollowers,
         });
         toast({
-            title: "Admin Account Created!",
-            description: "10,000 followers have been added to the official account."
+            title: "Akun Admin Dibuat!",
+            description: "10,000 pengikut telah ditambahkan ke akun resmi."
         });
       }
 
@@ -78,10 +78,10 @@ export default function SignupPage() {
       router.push("/");
 
     } catch (error: any) {
-      console.error("Signup failed:", error);
+      console.error("Pendaftaran gagal:", error);
       toast({
-        title: "Sign-up Failed",
-        description: error.message || "An unexpected error occurred.",
+        title: "Pendaftaran Gagal",
+        description: error.message || "Terjadi kesalahan tak terduga.",
         variant: "destructive",
       });
     } finally {
@@ -93,19 +93,19 @@ export default function SignupPage() {
     <Card>
       <form onSubmit={handleSubmit}>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
+          <CardTitle className="text-2xl font-headline">Buat Akun</CardTitle>
           <CardDescription>
-            Join Fantasio and start your magical journey
+            Bergabunglah dengan Fantasio dan mulai perjalanan ajaib Anda
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Nama Pengguna</Label>
             <div className="relative">
               <Icons.Profile className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="username" 
-                placeholder="your_cool_name" 
+                placeholder="nama_keren_anda" 
                 className="pl-10" 
                 required 
                 value={username}
@@ -129,13 +129,13 @@ export default function SignupPage() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Kata Sandi</Label>
             <div className="relative">
               <Icons.Password className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 id="password" 
                 type="password" 
-                placeholder="Choose a strong password" 
+                placeholder="Pilih kata sandi yang kuat" 
                 className="pl-10" 
                 required 
                 value={password}
@@ -148,12 +148,12 @@ export default function SignupPage() {
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full font-bold" disabled={isLoading}>
             {isLoading && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}
-            Create Account
+            Buat Akun
           </Button>
           <div className="text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Sudah punya akun?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Login
+              Masuk
             </Link>
           </div>
         </CardFooter>

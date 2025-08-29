@@ -55,12 +55,12 @@ export default function ProfilePage() {
             setLoadingSavedPosts(false);
         }
       } else {
-        console.log('No such user!');
+        console.log('Pengguna tidak ditemukan!');
         setUserProfile(null);
       }
       setLoading(false);
     }, (error) => {
-        console.error("Error fetching user:", error);
+        console.error("Error mengambil data pengguna:", error);
         setLoading(false);
     });
 
@@ -82,7 +82,7 @@ export default function ProfilePage() {
         setPosts(postsData);
         setLoadingPosts(false);
     }, (error) => {
-        console.error("Error fetching posts:", error);
+        console.error("Error mengambil data postingan:", error);
         setLoadingPosts(false);
     });
 
@@ -107,7 +107,7 @@ export default function ProfilePage() {
         }
         setSavedPosts(savedPostsData);
     } catch (error) {
-        console.error("Error fetching saved posts:", error);
+        console.error("Error mengambil data postingan tersimpan:", error);
     } finally {
         setLoadingSavedPosts(false);
     }
@@ -139,7 +139,7 @@ export default function ProfilePage() {
             });
         }
     } catch (error) {
-        console.error("Failed to follow/unfollow user:", error);
+        console.error("Gagal mengikuti/berhenti mengikuti pengguna:", error);
     } finally {
         setIsFollowLoading(false);
     }
@@ -163,7 +163,7 @@ export default function ProfilePage() {
           userIds: [currentUser.uid, userProfile.uid],
           users: {
             [currentUser.uid]: {
-              username: currentUser.displayName || 'User',
+              username: currentUser.displayName || 'Pengguna',
               avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/200/200`,
             },
             [userProfile.uid]: {
@@ -179,23 +179,25 @@ export default function ProfilePage() {
       router.push('/messages');
 
     } catch (error) {
-      console.error("Error starting conversation: ", error);
+      console.error("Error memulai percakapan: ", error);
     } finally {
       setIsMessaging(false);
     }
   }
   
   const PostGrid = ({ posts, loading, type }: { posts: Post[], loading: boolean, type: 'user' | 'saved' }) => {
+    const imagePosts = posts.filter(post => post.imageUrl);
+
     const emptyStateMessages = {
         user: {
             icon: Icons.Create,
-            title: "No posts yet",
-            message: "Posts from this user will appear here."
+            title: "Belum ada postingan",
+            message: "Postingan dari pengguna ini akan muncul di sini."
         },
         saved: {
             icon: Icons.Bookmark,
-            title: "No saved posts",
-            message: "Your saved posts will appear here."
+            title: "Tidak ada postingan tersimpan",
+            message: "Postingan yang Anda simpan akan muncul di sini."
         }
     }
     const { icon: Icon, title, message } = emptyStateMessages[type];
@@ -208,7 +210,7 @@ export default function ProfilePage() {
         )
     }
 
-    if (posts.length === 0) {
+    if (imagePosts.length === 0) {
         return (
              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
                 <Icon className="w-12 h-12 mb-4" />
@@ -220,9 +222,9 @@ export default function ProfilePage() {
 
     return (
          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-4 mt-4">
-            {posts.map(post => (
+            {imagePosts.map(post => (
             <Card key={post.id} className="aspect-square relative group overflow-hidden">
-                <Image src={post.imageUrl} alt="User post" fill className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint="fantasy" />
+                <Image src={post.imageUrl!} alt="Postingan pengguna" fill className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint="fantasy" />
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="flex items-center gap-4 text-white font-bold">
                     <div className="flex items-center gap-1"><Icons.Like className="w-5 h-5" /> {post.likes.length}</div>
@@ -260,55 +262,55 @@ export default function ProfilePage() {
   }
 
   if (!userProfile) {
-    return <div className="text-center p-8">User not found.</div>;
+    return <div className="text-center p-8">Pengguna tidak ditemukan.</div>;
   }
   
   return (
     <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
-      <header className="flex flex-col sm:flex-row items-center sm:items-start gap-8 mb-10">
-        <Avatar className="w-24 h-24 sm:w-36 sm:h-36 border-4 border-primary">
+      <header className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-4 sm:gap-8 mb-10">
+        <Avatar className="w-24 h-24 sm:w-36 sm:h-36 border-4 border-primary mx-auto sm:mx-0">
           <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="person avatar" />
           <AvatarFallback className="text-4xl">{userProfile.username.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
-        <div className="flex flex-col items-center sm:items-start gap-4 flex-1">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-light text-foreground/80 flex items-center gap-2">
+        <div className="flex flex-col items-center sm:items-start gap-4">
+          <div className="w-full flex flex-col sm:flex-row items-center sm:justify-start gap-4">
+            <h1 className="text-2xl font-light text-foreground/80 flex items-center gap-2 order-1 sm:order-none">
               {userProfile.username}
-              {(userProfile.followers?.length ?? 0) >= 1000 && (
+              {(userProfile.followers?.length ?? 0) >= 5 && (
                 <Icons.Verified className="w-6 h-6 text-blue-500" />
               )}
             </h1>
-            {isOwnProfile ? (
-              <Button asChild variant="secondary">
-                <Link href="/settings/profile">Edit Profile</Link>
-              </Button>
-            ) : (
-              <>
-                <Button onClick={handleFollow} disabled={isFollowLoading}>
-                  {isFollowLoading ? <Icons.Spinner className="animate-spin" /> : (isFollowing ? 'Following' : 'Follow')}
+            {isOwnProfile && (
+              <div className="flex gap-4 order-3 sm:order-none w-full sm:w-auto">
+                <Button asChild variant="secondary" className="flex-1 sm:flex-initial">
+                  <Link href="/settings/profile">Edit Profil</Link>
                 </Button>
-                <Button variant="secondary" onClick={handleStartConversation} disabled={isMessaging}>
-                  {isMessaging ? <Icons.Spinner className="animate-spin" /> : "Message"}
-                </Button>
-              </>
+              </div>
             )}
           </div>
-          <div className="flex items-center gap-8 text-sm">
-            <div><span className="font-bold">{posts.length ?? 0}</span> posts</div>
-            <div><span className="font-bold">{userProfile.followers?.length ?? 0}</span> followers</div>
-            <div><span className="font-bold">{userProfile.following?.length ?? 0}</span> following</div>
+          <div className="flex items-center gap-8 text-sm w-full justify-center sm:justify-start border-y sm:border-none py-2 sm:py-0">
+            <div><span className="font-bold">{posts.length ?? 0}</span> postingan</div>
+            <div><span className="font-bold">{userProfile.followers?.length ?? 0}</span> pengikut</div>
+            <div><span className="font-bold">{userProfile.following?.length ?? 0}</span> mengikuti</div>
           </div>
-          <div>
+          <div className="text-center sm:text-left">
             <h2 className="font-bold font-headline">{userProfile.username}</h2>
             <p className="text-foreground/70 whitespace-pre-wrap">{userProfile.bio}</p>
           </div>
+          {!isOwnProfile && (
+            <div className="flex gap-4 w-full sm:w-auto pt-2">
+              <Button onClick={handleFollow} disabled={isFollowLoading} className="flex-1 sm:flex-initial">
+                {isFollowLoading ? <Icons.Spinner className="animate-spin" /> : (isFollowing ? 'Mengikuti' : 'Ikuti')}
+              </Button>
+            </div>
+          )}
         </div>
       </header>
       
       <Tabs defaultValue="posts" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="posts"><Icons.Create className="mr-2" />Posts</TabsTrigger>
-          <TabsTrigger value="saved" disabled={!isOwnProfile}><Icons.Bookmark className="mr-2" />Saved</TabsTrigger>
+          <TabsTrigger value="posts"><Icons.Create className="mr-2" />Postingan</TabsTrigger>
+          <TabsTrigger value="saved" disabled={!isOwnProfile}><Icons.Bookmark className="mr-2" />Tersimpan</TabsTrigger>
         </TabsList>
         <TabsContent value="posts">
           <PostGrid posts={posts} loading={loadingPosts} type="user" />
@@ -318,7 +320,7 @@ export default function ProfilePage() {
             <PostGrid posts={savedPosts} loading={loadingSavedPosts} type="saved" />
           ) : (
              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                <p>You can only see your own saved posts.</p>
+                <p>Anda hanya dapat melihat postingan yang Anda simpan sendiri.</p>
             </div>
           )}
         </TabsContent>

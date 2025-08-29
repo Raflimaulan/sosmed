@@ -3,8 +3,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { id } from 'date-fns/locale';
 import { arrayRemove, arrayUnion, collection, doc, onSnapshot, updateDoc, deleteDoc, getDocs, writeBatch, increment, query, getDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,10 +33,90 @@ import {
 import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { CommentSheet } from "./comment-sheet";
+import { AnimateImageDialog } from "./animate-image-dialog";
+import { Slider } from "./ui/slider";
 
 
 interface PostCardProps {
   post: Post;
+}
+
+const AudioPlayer = ({ src }: { src: string }) => {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [duration, setDuration] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0);
+
+    const togglePlayPause = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+        }
+    };
+
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            setDuration(audioRef.current.duration);
+        }
+    };
+
+    const handleSliderChange = (value: number[]) => {
+        if (audioRef.current) {
+            audioRef.current.currentTime = value[0];
+            setCurrentTime(value[0]);
+        }
+    };
+    
+    const formatTime = (time: number) => {
+        if (isNaN(time) || time === 0) return '0:00';
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (audio) {
+            audio.addEventListener('timeupdate', handleTimeUpdate);
+            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+            audio.addEventListener('ended', () => setIsPlaying(false));
+
+            return () => {
+                audio.removeEventListener('timeupdate', handleTimeUpdate);
+                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.removeEventListener('ended', () => setIsPlaying(false));
+            };
+        }
+    }, []);
+
+    return (
+        <div className="flex items-center gap-3 w-full bg-muted/50 p-3 rounded-lg">
+             <audio ref={audioRef} src={src} preload="metadata"></audio>
+             <Button onClick={togglePlayPause} variant="ghost" size="icon" className="rounded-full">
+                {isPlaying ? <Icons.Pause className="w-5 h-5" /> : <Icons.Play className="w-5 h-5" />}
+             </Button>
+             <div className="flex-1 flex items-center gap-2">
+                <Slider
+                    value={[currentTime]}
+                    max={duration}
+                    step={0.1}
+                    onValueChange={handleSliderChange}
+                    className="flex-1"
+                />
+                <span className="text-xs font-mono text-muted-foreground w-12 text-right">{formatTime(currentTime)} / {formatTime(duration)}</span>
+             </div>
+        </div>
+    )
 }
 
 export function PostCard({ post }: PostCardProps) {
@@ -48,9 +129,11 @@ export function PostCard({ post }: PostCardProps) {
     const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [postUser, setPostUser] = useState<UserProfile | null>(null);
+    const [showAnimateDialog, setShowAnimateDialog] = useState(false);
+
 
     const isOwner = user?.uid === post.userId;
-    const timeAgo = post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true }) : 'just now';
+    const timeAgo = post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true, locale: id }) : 'baru saja';
 
     useEffect(() => {
         if (user) {
@@ -98,23 +181,24 @@ export function PostCard({ post }: PostCardProps) {
 
     const handleLike = async () => {
         if (!user) {
-            toast({ title: "Please login to like posts", variant: "destructive" });
+            toast({ title: "Harap login untuk menyukai postingan", variant: "destructive" });
             return;
         }
         const postRef = doc(firestore, "posts", post.id);
+        const currentlyLiked = isLiked;
         try {
             await updateDoc(postRef, {
-                likes: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
+                likes: currentlyLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
             });
         } catch (error) {
-            console.error("Error liking post:", error);
-            toast({ title: "Failed to update like", variant: "destructive" });
+            console.error("Error menyukai postingan:", error);
+            toast({ title: "Gagal memperbarui suka", variant: "destructive" });
         }
     };
     
     const handleBookmark = async () => {
         if (!user) {
-            toast({ title: "Please login to save posts", variant: "destructive" });
+            toast({ title: "Harap login untuk menyimpan postingan", variant: "destructive" });
             return;
         }
         const userRef = doc(firestore, "users", user.uid);
@@ -123,8 +207,8 @@ export function PostCard({ post }: PostCardProps) {
                 savedPosts: isBookmarked ? arrayRemove(post.id) : arrayUnion(post.id)
             });
         } catch (error) {
-            console.error("Error bookmarking post:", error);
-            toast({ title: "Failed to save post", variant: "destructive" });
+            console.error("Error menyimpan postingan:", error);
+            toast({ title: "Gagal menyimpan postingan", variant: "destructive" });
         }
     };
 
@@ -152,14 +236,14 @@ export function PostCard({ post }: PostCardProps) {
             });
 
             toast({
-                title: "Post Deleted",
-                description: "Your post has been successfully deleted.",
+                title: "Postingan Dihapus",
+                description: "Postingan Anda telah berhasil dihapus.",
             });
         } catch (error) {
-            console.error("Error deleting post: ", error);
+            console.error("Error menghapus postingan: ", error);
             toast({
                 title: "Error",
-                description: "Failed to delete post. Please try again.",
+                description: "Gagal menghapus postingan. Silakan coba lagi.",
                 variant: "destructive"
             });
         } finally {
@@ -181,7 +265,7 @@ export function PostCard({ post }: PostCardProps) {
                 <div className="flex flex-col">
                 <Link href={`/${post.userId}`} className="font-bold hover:underline flex items-center gap-1">
                     {post.username}
-                    {(postUser?.followers?.length ?? 0) >= 1000 && (
+                    {(postUser?.followers?.length ?? 0) >= 5 && (
                       <Icons.Verified className="w-4 h-4 text-blue-500" />
                     )}
                 </Link>
@@ -194,7 +278,7 @@ export function PostCard({ post }: PostCardProps) {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="ml-auto">
                             <Icons.More />
-                            <span className="sr-only">More options</span>
+                            <span className="sr-only">Opsi lainnya</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -202,7 +286,7 @@ export function PostCard({ post }: PostCardProps) {
                             <>
                                 <DropdownMenuItem onSelect={() => setShowDeleteAlert(true)} className="text-red-500">
                                     <Icons.Delete className="mr-2 h-4 w-4" />
-                                    Delete Post
+                                    Hapus Postingan
                                 </DropdownMenuItem>
                             </>
                         )}
@@ -210,7 +294,7 @@ export function PostCard({ post }: PostCardProps) {
                              <DropdownMenuItem asChild>
                                 <Link href={`/${post.userId}`}>
                                     <Icons.Profile className="mr-2 h-4 w-4" />
-                                    View Profile
+                                    Lihat Profil
                                 </Link>
                             </DropdownMenuItem>
                         )}
@@ -218,47 +302,64 @@ export function PostCard({ post }: PostCardProps) {
                 </DropdownMenu>
 
             </CardHeader>
-            <CardContent className="p-0">
-                <div className="relative aspect-[4/5] w-full">
-                <Image
-                    src={post.imageUrl}
-                    alt={post.caption}
-                    fill
-                    className="object-cover"
-                    data-ai-hint="fantasy landscape"
-                />
-                </div>
-            </CardContent>
+            
+            {post.imageUrl && (
+              <CardContent className="p-0">
+                  <div className="relative aspect-[4/5] w-full">
+                  <Image
+                      src={post.imageUrl}
+                      alt={post.caption}
+                      fill
+                      className="object-cover"
+                      data-ai-hint="fantasy landscape"
+                  />
+                  </div>
+              </CardContent>
+            )}
+
+            {post.audioUrl && (
+                <CardContent className="p-4">
+                    <AudioPlayer src={post.audioUrl} />
+                </CardContent>
+            )}
+
             <CardFooter className="flex flex-col items-start gap-3 p-4">
                 <div className="flex items-center w-full">
                 <Button variant="ghost" size="icon" onClick={handleLike}>
                     <Icons.Like
                     className={cn("transition-all", isLiked ? "fill-red-500 text-red-500" : "")}
                     />
-                    <span className="sr-only">Like</span>
+                    <span className="sr-only">Suka</span>
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setShowCommentSheet(true)}>
                     <Icons.Comment />
-                    <span className="sr-only">Comment</span>
+                    <span className="sr-only">Komentar</span>
                 </Button>
-                <Button variant="ghost" size="icon">
-                    <Icons.Send />
-                    <span className="sr-only">Share</span>
+                <Button variant="ghost" size="icon" onClick={() => post.imageUrl && setShowAnimateDialog(true)} disabled={!post.imageUrl}>
+                    <Icons.Animate />
+                    <span className="sr-only">Hidupkan</span>
                 </Button>
                 <Button variant="ghost" size="icon" className="ml-auto" onClick={handleBookmark}>
                     <Icons.Bookmark className={cn("transition-all", isBookmarked ? "fill-primary text-primary" : "")}/>
-                    <span className="sr-only">Bookmark</span>
+                    <span className="sr-only">Simpan</span>
                 </Button>
                 </div>
-                <div className="font-bold text-sm">{post.likes.length} likes</div>
-                <div className="text-sm">
-                <Link href={`/${post.userId}`} className="font-bold hover:underline">
-                    {post.username}
-                </Link>{" "}
-                <span>{post.caption}</span>
-                </div>
+                
+                {post.likes.length > 0 && (
+                    <div className="font-bold text-sm">{post.likes.length} suka</div>
+                )}
+                
+                {post.caption && (
+                    <div className="text-sm w-full">
+                        <Link href={`/${post.userId}`} className="font-bold hover:underline">
+                            {post.username}
+                        </Link>{" "}
+                        <span className="whitespace-pre-wrap">{post.caption}</span>
+                    </div>
+                )}
+
                 {post.hashtags && post.hashtags.length > 0 && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {post.hashtags.map((tag) => (
                             <Link key={tag} href={`/tags/${tag}`} className="text-accent hover:underline text-sm">
                             #{tag}
@@ -269,7 +370,7 @@ export function PostCard({ post }: PostCardProps) {
                 
                 {commentsCount > 0 && (
                     <div className="text-sm text-muted-foreground cursor-pointer" onClick={() => setShowCommentSheet(true)}>
-                        View all {commentsCount} comments
+                        Lihat semua {commentsCount} komentar
                     </div>
                 )}
             </CardFooter>
@@ -279,23 +380,30 @@ export function PostCard({ post }: PostCardProps) {
                 open={showCommentSheet} 
                 onOpenChange={setShowCommentSheet} 
             />
+             {post.imageUrl && (
+                <AnimateImageDialog
+                    open={showAnimateDialog}
+                    onOpenChange={setShowAnimateDialog}
+                    originalImageUri={post.imageUrl}
+                />
+            )}
             <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your
-                        post and all its comments from our servers.
+                        Tindakan ini tidak dapat dibatalkan. Ini akan menghapus postingan Anda secara permanen
+                        dan semua komentarnya dari server kami.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDeletePost}
                         disabled={isDeleting}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                        {isDeleting ? <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" /> : "Delete"}
+                        {isDeleting ? <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" /> : "Hapus"}
                     </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

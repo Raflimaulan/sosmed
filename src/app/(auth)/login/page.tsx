@@ -34,10 +34,10 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (error: any) {
-      console.error("Login failed:", error);
+      console.error("Login gagal:", error);
       toast({
-        title: "Login Failed",
-        description: error.message || "An unexpected error occurred.",
+        title: "Login Gagal",
+        description: error.message || "Terjadi kesalahan tak terduga.",
         variant: "destructive",
       });
     } finally {
@@ -49,9 +49,9 @@ export default function LoginPage() {
     <Card>
       <form onSubmit={handleSubmit}>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-headline">Selamat Datang Kembali</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account
+            Masukkan kredensial Anda untuk mengakses akun Anda
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -71,7 +71,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Kata Sandi</Label>
             <div className="relative">
               <Icons.Password className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
@@ -89,12 +89,12 @@ export default function LoginPage() {
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full font-bold" disabled={isLoading}>
             {isLoading && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}
-            Login
+            Masuk
           </Button>
           <div className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Belum punya akun?{" "}
             <Link href="/signup" className="text-primary hover:underline">
-              Sign up
+              Daftar
             </Link>
           </div>
         </CardFooter>

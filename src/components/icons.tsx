@@ -22,6 +22,12 @@ import {
   BadgeCheck,
   Shield,
   LogOut,
+  Users,
+  Sparkles,
+  WandSparkles,
+  Mic,
+  Play,
+  Pause,
 } from 'lucide-react';
 
 export const Icons = {
@@ -47,4 +53,10 @@ export const Icons = {
   Verified: BadgeCheck,
   Shield,
   LogOut,
+  Users,
+  Sparkles,
+  Animate: WandSparkles,
+  Mic,
+  Play,
+  Pause,
 };

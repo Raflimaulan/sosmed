@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  // Video generation can take a while.
+  // You may need to increase the server action timeout for it to work.
+  // serverActions: {
+  //   bodySizeLimit: '4.5mb',
+  //   serverActionsTimeout: 120000, // 2 minutes
+  // },
 };
 
 export default nextConfig;

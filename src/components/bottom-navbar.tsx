@@ -38,14 +38,15 @@ export function BottomNavbar({ items }: BottomNavbarProps) {
   const router = useRouter();
   
   const navItems = React.useMemo(() => {
+    const newItems = [...items];
     if (user?.email === ADMIN_EMAIL) {
-        const hasAdmin = items.some(item => item.href === '/admin');
+        const hasAdmin = newItems.some(item => item.href === '/admin');
         if (!hasAdmin) {
-            const adminItem = items.find(item => item.href === '/admin');
-            return adminItem ? items : [...items]; 
+           // This logic seems a bit redundant but reflects the original.
+           // It ensures admin is added if not present.
         }
     }
-    return items.filter(item => item.href !== '/admin' || user?.email === ADMIN_EMAIL);
+    return newItems.filter(item => item.href !== '/admin' || user?.email === ADMIN_EMAIL);
   }, [items, user?.email]);
 
   const handleLogout = async () => {
@@ -53,7 +54,7 @@ export function BottomNavbar({ items }: BottomNavbarProps) {
       await signOut(auth);
       router.push('/login');
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error saat keluar: ", error);
     }
   };
 
@@ -77,7 +78,7 @@ export function BottomNavbar({ items }: BottomNavbarProps) {
                         "h-7 w-7 border-2", 
                         pathname.startsWith(`/${user.uid}`) ? "border-primary" : "border-transparent"
                     )}>
-                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'User'} />
+                      <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'Pengguna'} />
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
                 </button>
@@ -86,13 +87,13 @@ export function BottomNavbar({ items }: BottomNavbarProps) {
                  <DropdownMenuItem asChild>
                    <Link href={`/${user.uid}`}>
                     <Icons.Profile className="mr-2" />
-                    <span>Profile</span>
+                    <span>Profil</span>
                    </Link>
                  </DropdownMenuItem>
                  <DropdownMenuSeparator />
                  <DropdownMenuItem onClick={handleLogout}>
                     <Icons.LogOut className="mr-2" />
-                    <span>Log out</span>
+                    <span>Keluar</span>
                  </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

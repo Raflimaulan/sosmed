@@ -27,7 +27,8 @@ export interface Post {
   userId: string;
   username: string;
   avatarUrl: string;
-  imageUrl: string;
+  imageUrl?: string;
+  audioUrl?: string;
   caption: string;
   hashtags: string[];
   likes: string[];
@@ -55,4 +56,10 @@ export interface Chat {
     };
     lastMessage: string | null;
     lastMessageTimestamp: Timestamp;
+    
+    // Group chat fields
+    isGroup?: boolean;
+    groupName?: string;
+    groupAvatarUrl?: string;
+    admins?: string[];
 }

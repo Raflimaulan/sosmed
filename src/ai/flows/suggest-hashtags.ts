@@ -13,12 +13,12 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestHashtagsInputSchema = z.object({
-  postContent: z.string().describe('The content of the post for which hashtags are to be suggested.'),
+  postContent: z.string().describe('Konten dari postingan yang akan disarankan tagarnya.'),
 });
 export type SuggestHashtagsInput = z.infer<typeof SuggestHashtagsInputSchema>;
 
 const SuggestHashtagsOutputSchema = z.object({
-  hashtags: z.array(z.string()).describe('An array of suggested hashtags related to the post content.'),
+  hashtags: z.array(z.string()).describe('Sebuah array berisi tagar yang disarankan terkait konten postingan.'),
 });
 export type SuggestHashtagsOutput = z.infer<typeof SuggestHashtagsOutputSchema>;
 
@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
   name: 'suggestHashtagsPrompt',
   input: {schema: SuggestHashtagsInputSchema},
   output: {schema: SuggestHashtagsOutputSchema},
-  prompt: `You are a social media expert. Given the following post content, suggest relevant hashtags to increase visibility.
+  prompt: `Anda adalah seorang ahli media sosial. Berdasarkan konten postingan berikut, sarankan tagar yang relevan untuk meningkatkan visibilitas.
 
-Post Content: {{{postContent}}}
+Konten Postingan: {{{postContent}}}
 
-Please provide only the hashtags, separated by commas.`,
+Harap berikan hanya tagar, dipisahkan dengan koma.`,
 });
 
 const suggestHashtagsFlow = ai.defineFlow(
